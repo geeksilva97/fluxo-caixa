@@ -7,6 +7,9 @@ const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 const url = require('url')
 
+// Menu personalizado
+const Menu = electron.Menu
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
@@ -34,10 +37,49 @@ function createWindow () {
   })
 }
 
+
+
+function novaEntrada() {
+  console.log("Nova entrada");
+}
+
+function novaSaida() {
+  console.log("Nova saída");
+}
+
+
+
+
+
+
+
+
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', function() {
+  // Template menu
+  let template = [
+    {
+      label: 'Cadastro',
+      submenu: [
+        {
+          label: 'Entrada',
+          click: novaEntrada
+        },
+        {
+          label: 'Saída',
+          click: novaSaida
+        }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+  createWindow()
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -56,5 +98,4 @@ app.on('activate', function () {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+
