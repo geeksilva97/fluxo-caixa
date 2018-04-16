@@ -104,6 +104,19 @@ ipc.on('init-db', function(event, data) {
   }));
 })
 
+ipc.on('add-receita', function(event, arg) {
+ let db = new sqlite3.Database('./cerbasi.db'), stmt, receita;
+ receita = arg.data;
+ stmt = db.prepare("INSERT INTO receita (descricao, valor, observacao, data_lancamento, data_recebimento) VALUES (?, ?, ?, date('now'), ?)");
+ stmt.run(receita['descricao-receita'], receita['valor'], receita['observacao'], receita['data-recebimento']);
+ stmt.finalize();
+
+ db.close();
+
+
+ event.returnValue = 'Registrado com sucesso!';
+})
+
 
 function createWindow(fileStr, options){
   // Create browser window
@@ -129,7 +142,7 @@ function createWindow(fileStr, options){
 
 function novaEntrada() {
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'teste.html'),
+    pathname: path.join(__dirname, 'pages/receita.html'),
     protocol: 'file',
     slashes: true
   }));
@@ -143,7 +156,7 @@ function novaSaida() {
 
 
 app.on('ready', () => {
-
+  let page = 'index.html';
   let template = [
     {
       label: 'Cadastro',
@@ -160,14 +173,35 @@ app.on('ready', () => {
     }
   ];
 
-  const menu = Menu.buildFromTemplate(template)
-  Menu.setApplicationMenu(menu)
-
-  mainWindow = createWindow('index.html', {
+   mainWindow = createWindow(page, {
     width: 800,
     height: 600,
     title: 'Cerbasi'
   })
+
+  // Verificando se á foi configurado
+  let db = new sqlite3.Database('./cerbasi.db');
+  db.get("SELECT * FROM usuario WHERE id = ?", [1], (err, row) => {
+    if(err){
+      return console.error(err.message);
+    }
+
+    mainWindow.loadURL(url.format({
+      pathname: path.join(__dirname, 'pages/inicio.html'),
+      protocol: 'file',
+      slashes: true
+    }));
+
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+
+  });  
+
+  db.close();
+
+
+
+ 
 
 })
 
