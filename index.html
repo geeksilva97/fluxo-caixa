@@ -2,14 +2,33 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Hello World!</title>
+
+    <link rel="stylesheet" type="text/css" href="css/app.css">
   </head>
   <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
+    
+    <section id="main">
+      <h1>Início</h1>
+      <p>Preencha os dados abaixo e conclua a configuração</p>
+
+      <div class="row">
+        <p>Nome *</p>
+        <input type="text" name="nome" class="form-control">
+      </div>
+
+      <div class="row">
+        <p>E-mail *</p>
+        <input type="email" name="email" class="form-control">
+      </div>
+
+      <br />
+
+      <div class="row">
+        <button id="btn-pronto">Pronto</button>
+      </div>
+      <p><strong id="messages"></strong></p>
+    </section>
+
 
     <script>
       // You can also require other files to run in this process

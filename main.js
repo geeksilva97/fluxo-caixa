@@ -1,46 +1,138 @@
 const electron = require('electron')
-// Module to control application life.
 const app = electron.app
-// Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
-
 const path = require('path')
 const url = require('url')
 
 // Menu personalizado
 const Menu = electron.Menu
 
+// IPC Main
+const ipc = electron.ipcMain
+
+const sqlite3 = require('sqlite3').verbose()
+
+// WebContents
+const webContents = electron.webContents
+
+
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
-function createWindow () {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+// Cria o banco de dados
+ipc.on('init-db', function(event, data) {
+  let db = new sqlite3.Database('./cerbasi.db'), stmt;
+  let categorias = [
+    {descricao: 'Habitação', observacao: 'Contas de água, luz, telefone e gás, aluguel ou prestação da moradia, condomínio IPTU e taxas municipais, telefones fixos, telefones celulares, internet, TV por assinatura, supermercado, feira, padaria, empregados e afins'},
+    {descricao: 'Saúde', observacao: 'Plano de saúde, tratamentos, medicamentos, consultas médicas, terapeutas e gastos com dentista/ortodontista.'},
+    {descricao: 'Transporte', observacao: 'Prestação ou aluguel do automóvel, estacionamentos, IPVA, seguro, combustível, lavagens, multas, táxi, ônibus, trem e afins.'},
+    {descricao: 'Pessoais', observacao: 'Higiene pessoal, cabelereiro, cosméticos, vestuário, academia, esportes, tratamentos estéticos, mesadas e afins.'},
+    {descricao: 'Educação', observacao: 'Escola, faculdade, cursos, material escolar e uniformes.'},
+    {descricao: 'Lazer', observacao: 'Restaurantes, cafés, bares, boates, livraria, jornais, revistas, acessórios, videogames, viagens, passagens, hospedagens, passeios e similares.'},    
+    {descricao: 'Outras Despesas', observacao: 'Tarifa de bancos, anuidades de cartão de crédito, pensões, gorjetas, caixinhas, doações, dízimos e afins.'},    
+  ];
 
-  // and load the index.html of the app.
+  db.serialize(function() {
+    db.run(`CREATE TABLE usuario (
+      id integer PRIMARY KEY AUTOINCREMENT,
+      nome text NOT NULL,
+      email text )
+    `);
+
+    db.run(`CREATE TABLE categoria_despesa (
+      id integer PRIMARY KEY AUTOINCREMENT,
+      descricao text NOT NULL,
+      observacao text NOT NULL )
+    `);
+
+
+    db.run(`CREATE TABLE tipo_despesa (
+      id integer PRIMARY KEY AUTOINCREMENT,
+      descricao text NOT NULL)
+    `);
+
+    db.run(`CREATE TABLE despesa (
+      id integer PRIMARY KEY AUTOINCREMENT,
+      descricao text not null,
+      valor real not null,
+      data_lancamento datetime not null,
+      data_gasto datetime not null,
+      categoria_despesa_id integer not null)
+    `);
+
+    db.run(`CREATE TABLE receita (
+      id integer PRIMARY KEY AUTOINCREMENT,
+      descricao text not null,
+      valor real not null,
+      observacao text,
+      data_lancamento datetime not null,
+      data_recebimento datetime)
+    `);
+  });
+
+  // Inserindo dados do usuário
+  stmt = db.prepare("INSERT INTO usuario (nome, email) VALUES (?, ?)")
+  stmt.run(data.nome, data.email)
+  stmt.finalize()
+
+  // Inserindo categorias
+  stmt = db.prepare("INSERT INTO categoria_despesa (descricao, observacao) VALUES (?, ?)");
+  for(let cat of categorias){
+    stmt.run(cat.descricao, cat.observacao)
+  }
+  stmt.finalize()
+
+  // Inserindo tipos de despesa
+  stmt = db.prepare("INSERT INTO tipo_despesa (descricao) VALUES (?), (?)")
+  stmt.run('FIXA', 'EVENTUAL')
+  stmt.finalize()
+
+ 
+  // Encerrando uso do banco de dados.
+  db.close();
+
+  // retorna valor
+  event.returnValue = {status: true};
+
+  // Redirecoinando
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
+    pathname: path.join(__dirname, 'teste.html'),
+    protocol: 'file',
     slashes: true
-  }))
+  }));
+})
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null
+function createWindow(fileStr, options){
+  // Create browser window
+  let win = new BrowserWindow(options)
+
+  // and load the index.html of the app
+  win.loadURL(url.format({
+    pathname: path.join(__dirname, fileStr),
+    protocol: 'file',
+    slashes: true
+  }));
+
+  // Open the DevTools
+  win.webContents.openDevTools()
+
+  win.on('close', function(){
+    win = null
   })
+
+  return win
 }
 
 
-
 function novaEntrada() {
-  console.log("Nova entrada");
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'teste.html'),
+    protocol: 'file',
+    slashes: true
+  }));
 }
 
 function novaSaida() {
@@ -50,16 +142,8 @@ function novaSaida() {
 
 
 
+app.on('ready', () => {
 
-
-
-
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', function() {
-  // Template menu
   let template = [
     {
       label: 'Cadastro',
@@ -78,8 +162,22 @@ app.on('ready', function() {
 
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
-  createWindow()
+
+  mainWindow = createWindow('index.html', {
+    width: 800,
+    height: 600,
+    title: 'Cerbasi'
+  })
+
 })
+
+
+
+
+
+
+
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
