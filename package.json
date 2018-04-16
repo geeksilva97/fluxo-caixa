@@ -1,21 +1,19 @@
 {
-  "name": "electron-quick-start",
+  "name": "controle-financeiro",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "Software que auxialará o usuário no seu controle financeiro.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "rebuild": "electron-rebuild -f -w sqlite3"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/GeekSilva97/fluxo-caixa",
   "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+   "Finanças",
+   "Controle Financeiro",
+   "Fluxo de caixa"
   ],
-  "author": "GitHub",
+  "author": "Edigleysson Silva",
   "license": "CC0-1.0",
   "devDependencies": {
     "electron": "^1.8.4",
