@@ -16,20 +16,9 @@ btnAddReceita.addEventListener('click', function() {
 
 	alert(reply);
 
-	// try {
-	// 	let stmt = db.prepare("INSERT INTO receita (descricao, valor, observacao, data_lancamento) VALUES (?, ?, ?, ?);");
-	// 	stmt.run(data['descricao-receita'], data['valor'], data['observacao'], data['data-recebimento']);
-	// 	stmt.finalize();
-
-	// 	document.querySelector('.data').innerHTML = 'Receita registrada';
-	// } catch(e) {
-	// 	document.querySelector('.data').innerHTML = 'Erro ao inserir: '+e;
-	// }	
-
-	
-
 	for(let campo of campos){
 		campo.value = '';
 	};
 
 });
+

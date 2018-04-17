@@ -10,7 +10,8 @@ const Menu = electron.Menu
 // IPC Main
 const ipc = electron.ipcMain
 
-const sqlite3 = require('sqlite3').verbose()
+const sqlite3 = require('sqlite3').verbose();
+let db = new sqlite3.Database('./cerbasi.db');
 
 // WebContents
 const webContents = electron.webContents
@@ -23,7 +24,7 @@ let mainWindow
 
 // Cria o banco de dados
 ipc.on('init-db', function(event, data) {
-  let db = new sqlite3.Database('./cerbasi.db'), stmt;
+  let stmt;
   let categorias = [
     {descricao: 'Habitação', observacao: 'Contas de água, luz, telefone e gás, aluguel ou prestação da moradia, condomínio IPTU e taxas municipais, telefones fixos, telefones celulares, internet, TV por assinatura, supermercado, feira, padaria, empregados e afins'},
     {descricao: 'Saúde', observacao: 'Plano de saúde, tratamentos, medicamentos, consultas médicas, terapeutas e gastos com dentista/ortodontista.'},
@@ -104,8 +105,9 @@ ipc.on('init-db', function(event, data) {
   }));
 })
 
+// Insere um novo registro na tabela de receitas
 ipc.on('add-receita', function(event, arg) {
- let db = new sqlite3.Database('./cerbasi.db'), stmt, receita;
+ let stmt, receita;
  receita = arg.data;
  stmt = db.prepare("INSERT INTO receita (descricao, valor, observacao, data_lancamento, data_recebimento) VALUES (?, ?, ?, date('now'), ?)");
  stmt.run(receita['descricao-receita'], receita['valor'], receita['observacao'], receita['data-recebimento']);
@@ -117,6 +119,34 @@ ipc.on('add-receita', function(event, arg) {
  event.returnValue = 'Registrado com sucesso!';
 })
 
+// Busca lista de categorias
+ipc.on('listar-categorias', function(event, arg) {
+  let categorias = [];
+  db.all("SELECT * FROM categoria_despesa", function(err, rows) {
+    if(err){
+      console.log(err);
+      return;
+    }
+    event.sender.send('categorias-response', rows);
+  });
+
+  // db.close();
+});
+
+// Inserindo despesa no banco de dados
+ipc.on('inserir-despesa', function(event, despesa) {
+  let stmt;
+  stmt = db.prepare("INSERT INTO despesa (descricao, valor, data_lancamento, data_gasto, categoria_despesa_id) VALUES (?, ?, datetime('now'), ?, ?)");
+  stmt.run( despesa['descricao-despesa'], despesa['valor'], despesa['data-despesa'], despesa['categoria-despesa'] );
+  stmt.finalize();
+
+  event.returnValue = 'Despesa inserida com sucesso!';
+});
+
+
+
+
+// =============================================================================
 
 function createWindow(fileStr, options){
   // Create browser window
@@ -140,7 +170,7 @@ function createWindow(fileStr, options){
 }
 
 
-function novaEntrada() {
+function cadastrarReceita() {
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'pages/receita.html'),
     protocol: 'file',
@@ -148,8 +178,12 @@ function novaEntrada() {
   }));
 }
 
-function novaSaida() {
-  console.log("Nova saída");
+function cadastrarDespesa() {
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'pages/despesa.html'),
+    protocol: 'file',
+    slashes: true
+  }));
 }
 
 
@@ -162,12 +196,12 @@ app.on('ready', () => {
       label: 'Cadastro',
       submenu: [
         {
-          label: 'Entrada',
-          click: novaEntrada
+          label: 'Receita',
+          click: cadastrarReceita
         },
         {
-          label: 'Saída',
-          click: novaSaida
+          label: 'Despesa',
+          click: cadastrarDespesa
         }
       ]
     }
@@ -198,11 +232,6 @@ app.on('ready', () => {
   });  
 
   db.close();
-
-
-
- 
-
 })
 
 

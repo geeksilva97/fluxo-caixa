@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Cadastrar Despesa</title>
+</head>
+<body>
+
+	<section id="form-despesa">
+		<h1>Cadastrar Despesa</h1>
+
+		<div>
+			<p>Descrição *</p>
+			<input type="text" name="descricao-despesa">
+		</div>
+
+		<div>
+			<p>Valor *</p>
+			<input type="number" name="valor">
+		</div>
+
+		<div>
+			<p>Data da Despesa *</p>
+			<input type="date" name="data-despesa">
+		</div>
+
+		<div>
+			<p>Selecione uma categoria *</p>
+			<select name="categoria-despesa">
+				<option value="">........</option>
+			</select>
+			<p class="info-categoria"></p>
+		</div>
+
+		<div>
+			<br>
+			<button id="btn-add-despesa">Registrar</button>
+		</div>	
+
+		<p class="data"></p>	
+	</section>
+
+	<script>
+      // You can also require other files to run in this process
+      require('../js/add-despesa.js')
+    </script>
+</body>
+</html>
